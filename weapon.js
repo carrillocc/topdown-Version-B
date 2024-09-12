@@ -1,10 +1,11 @@
 import * as THREE from "three";
 
 class Weapon {
-  constructor(scene, player, camera) {
+  constructor(scene, player, camera, ground) {
     this.scene = scene;
     this.player = player;
     this.camera = camera;
+    this.ground = ground;
     this.setupRaycaster();
   }
 
@@ -18,9 +19,6 @@ class Weapon {
     ]);
     this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
     this.scene.add(this.laser);
-
-    // window.addEventListener("mousemove", this.onMouseMove.bind(this), false);
-    // window.addEventListener("mousedown", this.onMouseDown.bind(this), false);
   }
 
   onMouseMove(event) {
@@ -43,9 +41,10 @@ class Weapon {
       bullet.position.copy(this.player.mesh.position);
       this.scene.add(bullet);
 
-      const speed = 10;
+      const speed = 15;
       const direction = new THREE.Vector3();
       direction.subVectors(point, bullet.position).normalize();
+      direction.y = 0; // Keep the bullet in the xz plane
       bullet.userData.direction = direction;
 
       // Set the bullet lifetime (in milliseconds)

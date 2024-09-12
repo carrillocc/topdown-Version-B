@@ -72,7 +72,7 @@ class Game {
   }
 
   initWeapon() {
-    this.weapon = new Weapon(this.scene, this.player, this.camera);
+    this.weapon = new Weapon(this.scene, this.player, this.camera, this.ground);
     // this.scene.add(this.weapon.mesh);
   }
 
