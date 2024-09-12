@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import Player from "./player.js";
+import Weapon from "./weapon.js";
 
 class Game {
   constructor() {
     this.initScene();
     this.initPlayer();
-    this.setupRaycaster();
+    this.initWeapon();
     this.addEventListeners();
     this.animate();
     this.playerHeight = 250;
@@ -70,6 +71,11 @@ class Game {
     this.scene.add(this.player.mesh);
   }
 
+  initWeapon() {
+    this.weapon = new Weapon(this.scene, this.player, this.camera);
+    // this.scene.add(this.weapon.mesh);
+  }
+
   // Handle window resizing
   onWindowResize() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -93,84 +99,16 @@ class Game {
       this.playerDistance += event.deltaY * 0.1;
       this.playerHeight += event.deltaY * 0.1;
     });
-  }
 
-  setupRaycaster() {
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
-    this.laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-    this.laserGeometry = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(),
-      new THREE.Vector3(),
-    ]);
-    this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
-    this.scene.add(this.laser);
-
-    window.addEventListener("mousemove", this.onMouseMove.bind(this), false);
-    window.addEventListener("mousedown", this.onMouseDown.bind(this), false);
-  }
-
-  onMouseMove(event) {
-    // Update the mouse variable with the normalized device coordinates
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  }
-
-  onMouseDown(event) {
-    // Fire a laser bullet from the player to the mouse position
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObject(this.ground);
-
-    if (intersects.length > 0) {
-      const point = intersects[0].point;
-      const bullet = new THREE.Mesh(
-        new THREE.SphereGeometry(5, 32, 32),
-        new THREE.MeshBasicMaterial({ color: 0xff0000 })
-      );
-      bullet.position.copy(this.player.mesh.position);
-      this.scene.add(bullet);
-
-      const speed = 10;
-      const direction = new THREE.Vector3();
-      direction.subVectors(point, bullet.position).normalize();
-      bullet.userData.direction = direction;
-
-      // Set the bullet lifetime (in milliseconds)
-      const lifetime = 5000; // 5 seconds
-      setTimeout(() => {
-        if (bullet) {
-          this.scene.remove(bullet);
-          bullet.geometry.dispose();
-          bullet.material.dispose();
-        }
-      }, lifetime);
-
-      // Update bullet position
-      const updateBullet = () => {
-        if (bullet) {
-          bullet.position.add(
-            bullet.userData.direction.clone().multiplyScalar(speed)
-          );
-
-          // Check boundaries (map size is 2000 units)
-          if (
-            bullet.position.x > 10000 ||
-            bullet.position.x < -10000 ||
-            bullet.position.z > 10000 ||
-            bullet.position.z < -10000
-          ) {
-            this.scene.remove(bullet);
-            bullet.geometry.dispose();
-            bullet.material.dispose();
-            return;
-          }
-
-          requestAnimationFrame(updateBullet); // Continue updating
-        }
-      };
-
-      updateBullet(); // Start updating
-    }
+    // bind weapons
+    document.addEventListener(
+      "mousedown",
+      this.weapon.onMouseDown.bind(this.weapon)
+    );
+    document.addEventListener(
+      "mousemove",
+      this.weapon.onMouseMove.bind(this.weapon)
+    );
   }
 
   animate() {
