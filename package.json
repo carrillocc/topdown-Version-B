@@ -1,0 +1,19 @@
+{
+  "name": "topdown",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nick",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.0",
+    "three": "^0.168.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.4"
+  }
+}

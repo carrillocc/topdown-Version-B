@@ -1,0 +1,193 @@
+import * as THREE from "three";
+import Player from "./player.js";
+
+class Game {
+  constructor() {
+    this.initScene();
+    this.initPlayer();
+    this.setupRaycaster();
+    this.addEventListeners();
+    this.animate();
+    this.playerHeight = 250;
+    this.playerDistance = 75;
+  }
+
+  initScene() {
+    this.scene = new THREE.Scene();
+
+    // Perspective camera for 3D effect
+    this.camera = new THREE.PerspectiveCamera(
+      75, // Field of view
+      window.innerWidth / window.innerHeight, // Aspect ratio
+      0.1, // Near clipping plane
+      1000 // Far clipping plane
+    );
+
+    // Position the camera behind and above the player, looking at the player
+    this.camera.position.set(0, 200, 30); // Adjust the Y (height) and Z (distance)
+    this.camera.lookAt(0, 0, 0); // Look at the origin (the player)
+
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(this.renderer.domElement);
+
+    // Texture loader
+    const textureLoader = new THREE.TextureLoader();
+    const groundTexture = textureLoader.load("textures/grass.png"); // Load grass texture
+
+    groundTexture.wrapS = THREE.RepeatWrapping; // Repeat the texture horizontally
+    groundTexture.wrapT = THREE.RepeatWrapping; // Repeat the texture vertically
+    groundTexture.repeat.set(40, 40); // How many times the texture repeats on the plane
+
+    // Ground with texture
+    const groundGeometry = new THREE.PlaneGeometry(2000, 2000, 32, 32);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      map: groundTexture,
+    });
+    this.ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    this.ground.rotation.x = -Math.PI / 2; // Lay flat
+    this.ground.position.y = 0;
+
+    // Allow the ground to receive shadows
+    this.ground.receiveShadow = true;
+
+    this.scene.add(this.ground);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    this.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(100, 200, 100);
+    directionalLight.castShadow = true;
+    this.scene.add(directionalLight);
+    window.addEventListener("resize", this.onWindowResize.bind(this));
+  }
+
+  // Initialize the player
+  initPlayer() {
+    this.player = new Player(this.scene);
+    this.scene.add(this.player.mesh);
+  }
+
+  // Handle window resizing
+  onWindowResize() {
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.camera.left = -window.innerWidth / 2;
+    this.camera.right = window.innerWidth / 2;
+    this.camera.top = window.innerHeight / 2;
+    this.camera.bottom = -window.innerHeight / 2;
+    this.camera.updateProjectionMatrix();
+  }
+
+  addEventListeners() {
+    document.addEventListener(
+      "keydown",
+      this.player.onKeyDown.bind(this.player)
+    );
+    document.addEventListener("keyup", this.player.onKeyUp.bind(this.player));
+    // On scroll, change the distance of the camera from the player
+    document.addEventListener("wheel", (event) => {
+      if (this.playerDistance < 75 && event.deltaY < 0) return;
+      if (this.playerDistance > 250 && event.deltaY > 0) return;
+      this.playerDistance += event.deltaY * 0.1;
+      this.playerHeight += event.deltaY * 0.1;
+    });
+  }
+
+  setupRaycaster() {
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+    this.laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    this.laserGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+    ]);
+    this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
+    this.scene.add(this.laser);
+
+    window.addEventListener("mousemove", this.onMouseMove.bind(this), false);
+    window.addEventListener("mousedown", this.onMouseDown.bind(this), false);
+  }
+
+  onMouseMove(event) {
+    // Update the mouse variable with the normalized device coordinates
+    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  onMouseDown(event) {
+    // Fire a laser bullet from the player to the mouse position
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObject(this.ground);
+
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      const bullet = new THREE.Mesh(
+        new THREE.SphereGeometry(5, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 })
+      );
+      bullet.position.copy(this.player.mesh.position);
+      this.scene.add(bullet);
+
+      const speed = 10;
+      const direction = new THREE.Vector3();
+      direction.subVectors(point, bullet.position).normalize();
+      bullet.userData.direction = direction;
+
+      // Set the bullet lifetime (in milliseconds)
+      const lifetime = 5000; // 5 seconds
+      setTimeout(() => {
+        if (bullet) {
+          this.scene.remove(bullet);
+          bullet.geometry.dispose();
+          bullet.material.dispose();
+        }
+      }, lifetime);
+
+      // Update bullet position
+      const updateBullet = () => {
+        if (bullet) {
+          bullet.position.add(
+            bullet.userData.direction.clone().multiplyScalar(speed)
+          );
+
+          // Check boundaries (map size is 2000 units)
+          if (
+            bullet.position.x > 10000 ||
+            bullet.position.x < -10000 ||
+            bullet.position.z > 10000 ||
+            bullet.position.z < -10000
+          ) {
+            this.scene.remove(bullet);
+            bullet.geometry.dispose();
+            bullet.material.dispose();
+            return;
+          }
+
+          requestAnimationFrame(updateBullet); // Continue updating
+        }
+      };
+
+      updateBullet(); // Start updating
+    }
+  }
+
+  animate() {
+    requestAnimationFrame(this.animate.bind(this));
+
+    this.player.update();
+
+    const playerPosition = this.player.mesh.position;
+
+    this.camera.position.x = playerPosition.x;
+    this.camera.position.y = playerPosition.y + this.playerHeight;
+    this.camera.position.z = playerPosition.z + this.playerDistance;
+
+    this.camera.lookAt(playerPosition);
+
+    this.renderer.render(this.scene, this.camera);
+  }
+}
+
+new Game();
