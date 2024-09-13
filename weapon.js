@@ -25,6 +25,24 @@ class Weapon {
     // Update the mouse variable with the normalized device coordinates
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Update raycaster to get the point where the mouse intersects the ground
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObject(this.ground);
+
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+
+      // Compute the direction from the bird (player) to the intersection point
+      const direction = new THREE.Vector3();
+      direction.subVectors(point, this.player.mesh.position).normalize();
+
+      // Calculate the angle the bird should rotate to face the mouse position
+      const angle = Math.atan2(direction.x, direction.z);
+
+      // Rotate the bird to face the mouse position
+      this.player.mesh.rotation.y = angle;
+    }
   }
 
   onMouseDown(_event) {
