@@ -17,7 +17,7 @@ class Player {
   }
 
   initModel() {
-    // Bird Body (Ellipsoid shape)
+    // Bird Body
     const bodyGeometry = new THREE.SphereGeometry(15, 32, 32); // Ellipsoid for the body
     const bodyMaterial = new THREE.MeshToonMaterial({
       color: 0x4b7bb9,
@@ -25,22 +25,22 @@ class Player {
       emissiveIntensity: 0.5,
     });
     this.body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    this.body.scale.set(1, 1.5, 1); // Scale to make the body more oval-shaped (bird-like)
+    this.body.scale.set(1, 1.5, 1); // Scale to make the body more oval-shaped
 
-    // Bird Head (small sphere)
+    // Bird Head
     const headGeometry = new THREE.SphereGeometry(8, 32, 32); // Smaller sphere for head
     const headMaterial = new THREE.MeshToonMaterial({
-      color: 0xff780a,
-      emissive: 0xff0000,
-      emissiveIntensity: 0.5,
+      color: 0x4b7bb9,
+      emissive: 0x4b7bb1,
+      emissiveIntensity: 0.1,
     });
     this.head = new THREE.Mesh(headGeometry, headMaterial);
     this.head.position.y = 20; // Position the head on top of the body
 
-    // Bird Beak (Cone shape)
+    // Bird Beak
     const beakGeometry = new THREE.ConeGeometry(3, 6, 32); // Small cone for the beak
     const beakMaterial = new THREE.MeshToonMaterial({
-      color: 0xffd700, // Yellow color for beak
+      color: 0xffd700,
       emissive: 0xffa500,
       emissiveIntensity: 0.5,
     });
@@ -48,8 +48,8 @@ class Player {
     this.beak.position.set(0, 18, 13); // Position the beak in front of the head
     this.beak.rotation.x = Math.PI / 2; // Rotate to point outward
 
-    // Bird Wings (Scaled box for simplicity)
-    const wingGeometry = new THREE.BoxGeometry(2, 8, 20); // Wing shape
+    // Bird Wings
+    const wingGeometry = new THREE.BoxGeometry(2, 8, 20);
     const wingMaterial = new THREE.MeshToonMaterial({
       color: 0x4b7bb9,
       emissive: 0x4b7bb9,
@@ -62,7 +62,7 @@ class Player {
     this.leftWing.rotation.z = Math.PI / 4; // Rotate the wings slightly upwards
     this.rightWing.rotation.z = -Math.PI / 4;
 
-    // Bird Tail (Cone shape for simplicity)
+    // Bird Tail
     const tailGeometry = new THREE.ConeGeometry(5, 10, 32); // Tail shape
     const tailMaterial = new THREE.MeshToonMaterial({
       color: 0x4b7bb9,

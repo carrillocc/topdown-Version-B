@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import Player from "./player.js";
 import Weapon from "./weapon.js";
+import Enemies from "./enemies.js";
 
 class Game {
   constructor() {
     this.initScene();
     this.initPlayer();
     this.initWeapon();
+    this.initEnemies();
     this.addEventListeners();
     this.animate();
     this.playerHeight = 250;
@@ -18,43 +20,37 @@ class Game {
 
     // Perspective camera for 3D effect
     this.camera = new THREE.PerspectiveCamera(
-      75, // Field of view
-      window.innerWidth / window.innerHeight, // Aspect ratio
-      0.1, // Near clipping plane
-      1000 // Far clipping plane
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
     );
 
-    // Position the camera behind and above the player, looking at the player
-    this.camera.position.set(0, 200, 30); // Adjust the Y (height) and Z (distance)
-    this.camera.lookAt(0, 0, 0); // Look at the origin (the player)
+    this.camera.position.set(0, 200, 30);
+    this.camera.lookAt(0, 0, 0);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
 
-    // Texture loader
     const textureLoader = new THREE.TextureLoader();
-    const groundTexture = textureLoader.load("textures/grass.png"); // Load grass texture
+    const groundTexture = textureLoader.load("textures/grass.png");
 
-    groundTexture.wrapS = THREE.RepeatWrapping; // Repeat the texture horizontally
-    groundTexture.wrapT = THREE.RepeatWrapping; // Repeat the texture vertically
-    groundTexture.repeat.set(40, 40); // How many times the texture repeats on the plane
+    groundTexture.wrapS = THREE.RepeatWrapping;
+    groundTexture.wrapT = THREE.RepeatWrapping;
+    groundTexture.repeat.set(40, 40);
 
-    // Ground with texture
     const groundGeometry = new THREE.PlaneGeometry(2000, 2000, 32, 32);
     const groundMaterial = new THREE.MeshStandardMaterial({
       map: groundTexture,
     });
     this.ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    this.ground.rotation.x = -Math.PI / 2; // Lay flat
+    this.ground.rotation.x = -Math.PI / 2;
     this.ground.position.y = 0;
-
-    // Allow the ground to receive shadows
     this.ground.receiveShadow = true;
 
     this.scene.add(this.ground);
 
-    // Lighting
     const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(ambientLight);
 
@@ -62,10 +58,10 @@ class Game {
     directionalLight.position.set(100, 200, 100);
     directionalLight.castShadow = true;
     this.scene.add(directionalLight);
+
     window.addEventListener("resize", this.onWindowResize.bind(this));
   }
 
-  // Initialize the player
   initPlayer() {
     this.player = new Player(this.scene);
     this.scene.add(this.player.mesh);
@@ -73,16 +69,14 @@ class Game {
 
   initWeapon() {
     this.weapon = new Weapon(this.scene, this.player, this.camera, this.ground);
-    // this.scene.add(this.weapon.mesh);
   }
 
-  // Handle window resizing
+  initEnemies() {
+    this.enemies = new Enemies(this.scene, this.player);
+  }
+
   onWindowResize() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.camera.left = -window.innerWidth / 2;
-    this.camera.right = window.innerWidth / 2;
-    this.camera.top = window.innerHeight / 2;
-    this.camera.bottom = -window.innerHeight / 2;
     this.camera.updateProjectionMatrix();
   }
 
@@ -92,7 +86,7 @@ class Game {
       this.player.onKeyDown.bind(this.player)
     );
     document.addEventListener("keyup", this.player.onKeyUp.bind(this.player));
-    // On scroll, change the distance of the camera from the player
+
     document.addEventListener("wheel", (event) => {
       if (this.playerDistance < 75 && event.deltaY < 0) return;
       if (this.playerDistance > 250 && event.deltaY > 0) return;
@@ -100,7 +94,6 @@ class Game {
       this.playerHeight += event.deltaY * 0.1;
     });
 
-    // bind weapons
     document.addEventListener(
       "mousedown",
       this.weapon.onMouseDown.bind(this.weapon)
@@ -115,9 +108,9 @@ class Game {
     requestAnimationFrame(this.animate.bind(this));
 
     this.player.update();
+    this.enemies.update();
 
     const playerPosition = this.player.mesh.position;
-
     this.camera.position.x = playerPosition.x;
     this.camera.position.y = playerPosition.y + this.playerHeight;
     this.camera.position.z = playerPosition.z + this.playerDistance;
