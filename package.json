@@ -10,7 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
     "three": "^0.168.0"
   },
   "devDependencies": {

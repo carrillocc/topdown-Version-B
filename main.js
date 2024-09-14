@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import Player from "./player.js";
 import Weapon from "./weapon.js";
+import io from "socket.io-client";
 
 class Game {
   constructor() {
+    this.connectSocket();
     this.initScene();
     this.initPlayer();
     this.initWeapon();
@@ -11,6 +13,8 @@ class Game {
     this.animate();
     this.playerHeight = 250;
     this.playerDistance = 75;
+
+    this.members = [];
   }
 
   initScene() {
@@ -65,15 +69,66 @@ class Game {
     window.addEventListener("resize", this.onWindowResize.bind(this));
   }
 
+  joinRoom() {
+    this.socket.emit("JOIN", {
+      member: {
+        id: this.socket.id,
+        name: "PlayerX",
+        position: this.player.mesh.position,
+      },
+    });
+    this.watchJoin();
+    this.watchLeave();
+  }
+
+  watchMembers() {
+    this.socket.on("MEMBERS", (data) => {
+      this.members = data.map((datumn) => {
+        const player = new Player(this.scene, this.socket, datumn.member);
+        this.scene.add(player.mesh);
+        const member = { id: datumn.member.id, player };
+        return member;
+      });
+    });
+  }
+
+  watchJoin() {
+    this.socket.on("JOIN", (data) => {
+      console.log("JOIN event received:", data);
+
+      const player = new Player(this.scene, this.socket, data.member);
+
+      this.members = [...this.members, { id: data.member.id, player }];
+
+      this.scene.add(player.mesh);
+
+      console.log("MEMBERS:", this.members);
+    });
+  }
+
+  watchLeave() {
+    this.socket.on("LEAVE", (data) => {
+      console.log("LEAVE event received:", data);
+      console.log("MEMBERS before:", this.members);
+      const leavingPlayer = this.members.find(
+        (member) => member.id === data.id
+      );
+      if (leavingPlayer) {
+        console.log("LEAVE event set");
+        this.scene.remove(leavingPlayer.player.mesh);
+      }
+      this.members = this.members.filter((member) => member.id !== data.id);
+    });
+  }
+
   // Initialize the player
   initPlayer() {
-    this.player = new Player(this.scene);
+    this.player = new Player(this.scene, this.socket);
     this.scene.add(this.player.mesh);
   }
 
   initWeapon() {
     this.weapon = new Weapon(this.scene, this.player, this.camera, this.ground);
-    // this.scene.add(this.weapon.mesh);
   }
 
   // Handle window resizing
@@ -109,6 +164,33 @@ class Game {
       "mousemove",
       this.weapon.onMouseMove.bind(this.weapon)
     );
+  }
+
+  connectSocket() {
+    console.log("Connecting to server");
+    this.socket = io("http://localhost:3000");
+
+    this.socket.on("connect", () => {
+      console.log("WELCOME ", this.socket.id);
+      this.joinRoom();
+      this.watchMembers();
+    });
+
+    this.socket.on("POSITION", (data) => {
+      const member = this.members.find((member) => member.id === data.id);
+      if (member) {
+        console.log("UPDATE MEMBER POSITION", member.id);
+        member.player.mesh.position.set(
+          data.position.x,
+          data.position.y,
+          data.position.z
+        );
+      }
+    });
+
+    this.socket.on("disconnect", () => {
+      this.socket.emit("LEAVE", { id: this.socket.id });
+    });
   }
 
   animate() {

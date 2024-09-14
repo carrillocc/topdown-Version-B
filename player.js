@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 class Player {
-  constructor(scene) {
+  constructor(scene, socket, member = null) {
     this.movement = {
       left: false,
       right: false,
@@ -10,10 +10,23 @@ class Player {
     };
 
     this.scene = scene;
+    this.socket = socket;
+
     this.initModel();
 
     this.speed = 3;
     this.lean = 0.15;
+
+    if (member) {
+      this.mesh.position.copy(member.position);
+    }
+  }
+
+  emitPosition() {
+    this.socket.emit("POSITION", {
+      id: this.socket.id,
+      position: this.mesh.position,
+    });
   }
 
   initModel() {
@@ -63,6 +76,8 @@ class Player {
     if (this.movement.backward) this.mesh.rotation.x = this.lean;
     if (this.movement.left) this.mesh.rotation.z = this.lean;
     if (this.movement.right) this.mesh.rotation.z = -this.lean;
+
+    this.emitPosition();
   }
 
   // Handle keydown events
