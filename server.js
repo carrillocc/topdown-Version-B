@@ -30,6 +30,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("POSITION", (data) => {
+    console.log("POSITION", data);
     socket.broadcast.emit("POSITION", data);
     members = members.map((member) => {
       if (member.id === data.id) {
@@ -40,6 +41,11 @@ io.on("connection", (socket) => {
       }
       return member;
     });
+  });
+
+  socket.on("WEAPON", (data) => {
+    console.log("WEAPON", data);
+    socket.broadcast.emit("WEAPON", data);
   });
 
   socket.on("disconnect", () => {

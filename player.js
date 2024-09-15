@@ -23,10 +23,17 @@ class Player {
   }
 
   emitPosition() {
+    if (this.isEmitting) return;
+    this.isEmitting = true;
+
     this.socket.emit("POSITION", {
       id: this.socket.id,
       position: this.mesh.position,
     });
+
+    setTimeout(() => {
+      this.isEmitting = false;
+    }, 35);
   }
 
   initModel() {
@@ -77,7 +84,14 @@ class Player {
     if (this.movement.left) this.mesh.rotation.z = this.lean;
     if (this.movement.right) this.mesh.rotation.z = -this.lean;
 
-    this.emitPosition();
+    if (
+      this.movement.forward ||
+      this.movement.backward ||
+      this.movement.left ||
+      this.movement.right
+    ) {
+      this.emitPosition();
+    }
   }
 
   // Handle keydown events

@@ -109,12 +109,10 @@ class Game {
   watchLeave() {
     this.socket.on("LEAVE", (data) => {
       console.log("LEAVE event received:", data);
-      console.log("MEMBERS before:", this.members);
       const leavingPlayer = this.members.find(
         (member) => member.id === data.id
       );
       if (leavingPlayer) {
-        console.log("LEAVE event set");
         this.scene.remove(leavingPlayer.player.mesh);
       }
       this.members = this.members.filter((member) => member.id !== data.id);
@@ -128,7 +126,13 @@ class Game {
   }
 
   initWeapon() {
-    this.weapon = new Weapon(this.scene, this.player, this.camera, this.ground);
+    this.weapon = new Weapon(
+      this.scene,
+      this.player,
+      this.camera,
+      this.ground,
+      this.socket
+    );
   }
 
   // Handle window resizing
@@ -179,7 +183,6 @@ class Game {
     this.socket.on("POSITION", (data) => {
       const member = this.members.find((member) => member.id === data.id);
       if (member) {
-        console.log("UPDATE MEMBER POSITION", member.id);
         member.player.mesh.position.set(
           data.position.x,
           data.position.y,
