@@ -1,9 +1,10 @@
 import * as THREE from "three";
-import UFO from "./ufo.js"; // Make sure "UFO" matches your class name
-import Bird from "./bird.js"; // Make sure "Bird" matches your class name
+import UFO from "./Players/ufo.js";
+import Bird from "./Players/bird.js";
 import Weapon from "./weapon.js";
 import io from "socket.io-client";
-import Enemies from "./enemies.js";
+// import Cats from "./Enemies/cat.js";
+import Humans from "./Enemies/human.js";
 
 class Game {
   constructor() {
@@ -35,6 +36,15 @@ class Game {
     return playerType;
   }
 
+  // chooseEnemyType() {
+  //   const enemyType = prompt("Choose your enemy type: 'cat' or 'human'");
+  //   if (enemyType !== "cat" && enemyType !== "human") {
+  //     alert("Invalid choice. Defaulting to 'cat.");
+  //     return "cat";
+  //   }
+  //   return enemyType;
+  // }
+
   initPlayer() {
     if (this.playerType === "ufo") {
       this.player = new UFO(this.scene, this.socket); // UFO player
@@ -45,7 +55,11 @@ class Game {
   }
 
   initEnemies() {
-    this.enemies = new Enemies(this.scene, this.player);
+    // if (this.enemyType === "cat") {
+    this.enemies = new Humans(this.scene, this.player);
+    // } else {
+    // this.enemies = new Humans(this.scene, this.player);
+    // }
   }
 
   initScene() {
@@ -128,6 +142,7 @@ class Game {
         name: "PlayerX", // Consider getting the actual player name dynamically
         position: this.player.mesh.position,
         type: this.playerType, // Include player type (ufo or bird)
+        // enemy: this.enemyType, // Include enemy type (human or cat)
       },
     });
     this.watchJoin();
@@ -145,6 +160,13 @@ class Game {
         player = new Bird(this.scene);
       }
 
+      // let enemy;
+      // if (data.member.enemy === "cat") {
+      //   enemy = new Cats(this.scene, this.socket, data.member);
+      // } else {
+      //   enemy = new Cats(this.scene, this.socket, data.member);
+      // }
+
       this.members = [...this.members, { id: data.member.id, player }];
       this.scene.add(player.mesh);
 
@@ -161,6 +183,14 @@ class Game {
         } else {
           player = new Bird(this.scene);
         }
+
+        // let enemy;
+        // if (datumn.member.enemy === "human") {
+        //   enemy = new Cats(this.scene, this.socket, datamn.member);
+        // } else {
+        //   enemy = new Cats(this.scene, this.socket, datamn.member);
+        // }
+
         this.scene.add(player.mesh);
         return { id: datumn.member.id, player };
       });

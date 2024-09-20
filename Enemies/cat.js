@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-class Enemies {
+class Cats {
   constructor(scene, player) {
     this.scene = scene;
     this.player = player;
@@ -114,4 +114,4 @@ class Enemies {
   }
 }
 
-export default Enemies;
+export default Cats;
