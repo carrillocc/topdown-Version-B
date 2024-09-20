@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-class Player {
+class UFO {
   constructor(scene, socket, member = null) {
     this.movement = {
       left: false,
@@ -37,72 +37,33 @@ class Player {
   }
 
   initModel() {
-    // Bird Body
-    const bodyGeometry = new THREE.SphereGeometry(15, 32, 32); // Ellipsoid for the body
+    // Pentagon-shaped UFO Body
+    const bodyGeometry = new THREE.CylinderGeometry(15, 15, 5);
     const bodyMaterial = new THREE.MeshToonMaterial({
       color: 0x4b7bb9,
       emissive: 0x4b7bb9,
       emissiveIntensity: 0.5,
     });
     this.body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    this.body.scale.set(1, 1.5, 1); // Scale to make the body more oval-shaped
 
-    // Bird Head
-    const headGeometry = new THREE.SphereGeometry(8, 32, 32); // Smaller sphere for head
-    const headMaterial = new THREE.MeshToonMaterial({
-      color: 0x4b7bb9,
-      emissive: 0x4b7bb1,
-      emissiveIntensity: 0.1,
-    });
-    this.head = new THREE.Mesh(headGeometry, headMaterial);
-    this.head.position.y = 20; // Position the head on top of the body
-
-    // Bird Beak
-    const beakGeometry = new THREE.ConeGeometry(3, 6, 32); // Small cone for the beak
-    const beakMaterial = new THREE.MeshToonMaterial({
-      color: 0xffd700,
-      emissive: 0xffa500,
+    // UFO Dome (top part)
+    const domeGeometry = new THREE.SphereGeometry(10, 32, 2); // Dome shape
+    const domeMaterial = new THREE.MeshToonMaterial({
+      color: 0xff780a,
+      emissive: 0xff0000,
       emissiveIntensity: 0.5,
     });
-    this.beak = new THREE.Mesh(beakGeometry, beakMaterial);
-    this.beak.position.set(0, 18, 13); // Position the beak in front of the head
-    this.beak.rotation.x = Math.PI / 2; // Rotate to point outward
+    this.dome = new THREE.Mesh(domeGeometry, domeMaterial);
 
-    // Bird Wings
-    const wingGeometry = new THREE.BoxGeometry(2, 8, 20);
-    const wingMaterial = new THREE.MeshToonMaterial({
-      color: 0x4b7bb9,
-      emissive: 0x4b7bb9,
-      emissiveIntensity: 0.5,
-    });
-    this.leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    this.rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    this.leftWing.position.set(-16, 10, 0); // Position the left wing on the side of the body
-    this.rightWing.position.set(16, 10, 0); // Position the right wing on the other side
-    this.leftWing.rotation.z = Math.PI / 4; // Rotate the wings slightly upwards
-    this.rightWing.rotation.z = -Math.PI / 4;
-
-    // Bird Tail
-    const tailGeometry = new THREE.ConeGeometry(5, 10, 32); // Tail shape
-    const tailMaterial = new THREE.MeshToonMaterial({
-      color: 0x4b7bb9,
-      emissive: 0x4b7bb9,
-      emissiveIntensity: 0.5,
-    });
-    this.tail = new THREE.Mesh(tailGeometry, tailMaterial);
-    this.tail.position.set(0, -10, -15); // Position the tail at the back of the body
-    this.tail.rotation.x = Math.PI / 2; // Pointing backward
+    // Position the dome on top of the body
+    this.dome.position.y = 7; // Adjust Y to sit on top of the disk
 
     // Group all parts together
     this.mesh = new THREE.Group();
     this.mesh.add(this.body);
-    this.mesh.add(this.head);
-    this.mesh.add(this.beak);
-    this.mesh.add(this.leftWing);
-    this.mesh.add(this.rightWing);
-    this.mesh.add(this.tail);
+    this.mesh.add(this.dome);
 
-    // Add Bird to the scene
+    // Add UFO to the scene
     this.scene.add(this.mesh);
   }
 
@@ -170,4 +131,4 @@ class Player {
   }
 }
 
-export default Player;
+export default UFO;
