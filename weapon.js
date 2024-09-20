@@ -1,12 +1,14 @@
 import * as THREE from "three";
 
 class Weapon {
-  constructor(scene, player, camera, ground) {
+  constructor(scene, player, camera, ground, socket) {
     this.scene = scene;
     this.player = player;
     this.camera = camera;
     this.ground = ground;
+    this.socket = socket;
     this.setupRaycaster();
+    this.listenWeapon();
   }
 
   setupRaycaster() {
@@ -19,6 +21,14 @@ class Weapon {
     ]);
     this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
     this.scene.add(this.laser);
+  }
+
+  emitWeapon(point) {
+    this.socket.emit("WEAPON", {
+      id: this.socket.id,
+      position: this.player.mesh.position,
+      point,
+    });
   }
 
   onMouseMove(event) {
@@ -45,7 +55,65 @@ class Weapon {
     }
   }
 
-  onMouseDown(_event) {
+  onMouseDown() {
+    let direction = this.fire();
+    this.emitWeapon(direction);
+  }
+
+  listenWeapon() {
+    this.socket.on("WEAPON", (data) => {
+      if (data.id === this.socket.id) return;
+
+      const bullet = new THREE.Mesh(
+        new THREE.SphereGeometry(5, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 })
+      );
+      bullet.position.copy(data.position);
+      this.scene.add(bullet);
+
+      const speed = 15;
+      let userDataDirection = new THREE.Vector3();
+      userDataDirection.subVectors(data.point, bullet.position).normalize();
+      userDataDirection.y = 0;
+
+      bullet.userData.direction = userDataDirection;
+
+      const lifetime = 5000;
+      setTimeout(() => {
+        if (bullet) {
+          this.scene.remove(bullet);
+          bullet.geometry.dispose();
+          bullet.material.dispose();
+        }
+      }, lifetime);
+
+      const updateBullet = () => {
+        if (bullet) {
+          bullet.position.add(
+            bullet.userData.direction.clone().multiplyScalar(speed)
+          );
+
+          if (
+            bullet.position.x > 10000 ||
+            bullet.position.x < -10000 ||
+            bullet.position.z > 10000 ||
+            bullet.position.z < -10000
+          ) {
+            this.scene.remove(bullet);
+            bullet.geometry.dispose();
+            bullet.material.dispose();
+            return;
+          }
+
+          requestAnimationFrame(updateBullet);
+        }
+      };
+
+      updateBullet();
+    });
+  }
+
+  fire() {
     // Fire a laser bullet from the player to the mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObject(this.ground);
@@ -100,6 +168,8 @@ class Weapon {
       };
 
       updateBullet(); // Start updating
+
+      return point;
     }
   }
 }
