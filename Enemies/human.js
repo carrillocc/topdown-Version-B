@@ -7,7 +7,7 @@ class Humans {
     this.enemies = [];
     this.enemySpeed = 0.5; // Enemy Speed
 
-    this.spawnEnemies(5); // Spawn 5 enemies
+    this.spawnEnemies(10); // Spawn 5 enemies
   }
 
   createEnemySpeed() {

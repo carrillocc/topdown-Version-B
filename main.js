@@ -14,8 +14,8 @@ class Game {
     this.playerType = this.choosePlayerType(); // Prompt player type
     this.enemyType = this.chooseEnemyType();
     this.initPlayer();
-    this.initWeapon();
     this.initEnemies();
+    this.initWeapon();
     this.playerDistance = 75;
 
     this.members = [];
@@ -108,6 +108,7 @@ class Game {
       this.player,
       this.camera,
       this.ground,
+      this.enemies,
       this.socket
     );
   }
