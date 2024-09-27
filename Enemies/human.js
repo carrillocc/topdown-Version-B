@@ -15,7 +15,7 @@ class Humans {
   }
 
   // Create enemy human models
-  createCat() {
+  createHuman() {
     const humanGroup = new THREE.Group(); // Group to hold all parts of the human
 
     // Human Body
@@ -66,7 +66,7 @@ class Humans {
     hat.add(hatCrown);
     hat.add(hatBrim);
 
-    // Add all parts to the cat group
+    // Add all parts to the human group
     humanGroup.add(body);
     humanGroup.add(head);
     humanGroup.add(frontLeftLeg);
@@ -75,7 +75,7 @@ class Humans {
     humanGroup.add(rightArm);
     humanGroup.add(hat);
 
-    // Position the entire cat randomly on the ground
+    // Position the entire human randomly on the ground
     humanGroup.position.set(
       Math.random() * 2000 - 1000,
       5,
@@ -88,9 +88,9 @@ class Humans {
   // Spawn a number of enemies
   spawnEnemies(count) {
     for (let i = 0; i < count; i++) {
-      const cat = this.createCat();
-      this.enemies.push(cat);
-      this.scene.add(cat);
+      const human = this.createHuman();
+      this.enemies.push(human);
+      this.scene.add(human);
     }
   }
 

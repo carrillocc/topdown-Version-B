@@ -3,7 +3,7 @@ import UFO from "./Players/ufo.js";
 import Bird from "./Players/bird.js";
 import Weapon from "./weapon.js";
 import io from "socket.io-client";
-// import Cats from "./Enemies/cat.js";
+import Cats from "./Enemies/cat.js";
 import Humans from "./Enemies/human.js";
 
 class Game {
@@ -12,6 +12,7 @@ class Game {
     this.initScene();
     this.playerHeight = 250;
     this.playerType = this.choosePlayerType(); // Prompt player type
+    this.enemyType = this.chooseEnemyType();
     this.initPlayer();
     this.initWeapon();
     this.initEnemies();
@@ -36,14 +37,14 @@ class Game {
     return playerType;
   }
 
-  // chooseEnemyType() {
-  //   const enemyType = prompt("Choose your enemy type: 'cat' or 'human'");
-  //   if (enemyType !== "cat" && enemyType !== "human") {
-  //     alert("Invalid choice. Defaulting to 'cat.");
-  //     return "cat";
-  //   }
-  //   return enemyType;
-  // }
+  chooseEnemyType() {
+    const enemyType = prompt("Choose your enemy type: 'cats' or 'humans");
+    if (enemyType !== "cats" && enemyType !== "humans") {
+      alert("Invalid choice. Defaulting to 'cats'");
+      return "cats";
+    }
+    return enemyType;
+  }
 
   initPlayer() {
     if (this.playerType === "ufo") {
@@ -55,11 +56,11 @@ class Game {
   }
 
   initEnemies() {
-    // if (this.enemyType === "cat") {
-    this.enemies = new Humans(this.scene, this.player);
-    // } else {
-    // this.enemies = new Humans(this.scene, this.player);
-    // }
+    if (this.enemyType === "cats") {
+      this.enemies = new Cats(this.scene, this.player);
+    } else {
+      this.enemies = new Humans(this.scene, this.player);
+    }
   }
 
   initScene() {
@@ -142,7 +143,6 @@ class Game {
         name: "PlayerX", // Consider getting the actual player name dynamically
         position: this.player.mesh.position,
         type: this.playerType, // Include player type (ufo or bird)
-        // enemy: this.enemyType, // Include enemy type (human or cat)
       },
     });
     this.watchJoin();
@@ -160,13 +160,6 @@ class Game {
         player = new Bird(this.scene);
       }
 
-      // let enemy;
-      // if (data.member.enemy === "cat") {
-      //   enemy = new Cats(this.scene, this.socket, data.member);
-      // } else {
-      //   enemy = new Cats(this.scene, this.socket, data.member);
-      // }
-
       this.members = [...this.members, { id: data.member.id, player }];
       this.scene.add(player.mesh);
 
@@ -183,13 +176,6 @@ class Game {
         } else {
           player = new Bird(this.scene);
         }
-
-        // let enemy;
-        // if (datumn.member.enemy === "human") {
-        //   enemy = new Cats(this.scene, this.socket, datamn.member);
-        // } else {
-        //   enemy = new Cats(this.scene, this.socket, datamn.member);
-        // }
 
         this.scene.add(player.mesh);
         return { id: datumn.member.id, player };
