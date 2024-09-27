@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import UFO from "./Players/ufo.js";
 import Bird from "./Players/bird.js";
-import Weapon from "./weapon.js";
+import Weapon from "./Weapons/weapon.js";
 import io from "socket.io-client";
 import Cats from "./Enemies/cat.js";
 import Humans from "./Enemies/human.js";
